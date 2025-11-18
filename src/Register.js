@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -16,10 +17,15 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/users/register", formData);
-      alert(res.data.message);
+      const res = await axios.post(
+        "http://localhost:5000/api/users/register",
+        formData
+      );
+
       if (res.data.message === "User registered successfully") {
-        window.location.href = "/login";
+        navigate("/login");
+      } else {
+        alert(res.data.message);
       }
     } catch (error) {
       alert(error.response?.data?.message || "Error registering user");
@@ -27,64 +33,88 @@ function Register() {
   };
 
   return (
-    <div style={styles.container}>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <input
-          name="name"
-          placeholder="Enter your name"
-          value={formData.name}
-          onChange={handleChange}
-          style={styles.input}
-        />
-        <input
-          name="email"
-          placeholder="Enter your email"
-          value={formData.email}
-          onChange={handleChange}
-          style={styles.input}
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Enter your password"
-          value={formData.password}
-          onChange={handleChange}
-          style={styles.input}
-        />
-        <button type="submit" style={styles.button}>Register</button>
-      </form>
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <h2 style={styles.title}>Create an Account</h2>
 
-      <p style={{ marginTop: "15px" }}>
-        Already have an account?{" "}
-        <Link to="/login" style={styles.link}>Login here</Link>
-      </p>
+        <form onSubmit={handleSubmit}>
+          <input
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            style={styles.input}
+          />
+
+          <input
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            style={styles.input}
+          />
+
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            style={styles.input}
+          />
+
+          <button type="submit" style={styles.button}>Register</button>
+        </form>
+
+        <p style={styles.text}>
+          Already registered?{" "}
+          <Link to="/login" style={styles.link}>Login here</Link>
+        </p>
+      </div>
     </div>
   );
 }
 
 const styles = {
-  container: { marginTop: "40px", textAlign: "center" },
-  form: { display: "inline-block", textAlign: "left" },
+  page: {
+    display: "flex",
+    justifyContent: "center",
+    marginTop: "40px",
+  },
+  card: {
+    width: "320px",
+    padding: "25px",
+    borderRadius: "12px",
+    background: "white",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+    textAlign: "center",
+  },
+  title: {
+    color: "#1A73E8",
+    marginBottom: "20px",
+  },
   input: {
-    display: "block",
+    width: "100%",
+    padding: "10px",
     margin: "10px 0",
-    padding: "8px 12px",
-    width: "250px",
     borderRadius: "8px",
-    border: "1px solid #aaa",
+    border: "1px solid #ccc",
   },
   button: {
-    marginTop: "10px",
-    padding: "10px 20px",
+    width: "100%",
+    padding: "10px",
     backgroundColor: "#28a745",
     color: "white",
     border: "none",
     borderRadius: "8px",
     cursor: "pointer",
+    marginTop: "15px",
+  },
+  text: {
+    marginTop: "15px",
   },
   link: {
-    color: "#007bff",
+    color: "#1A73E8",
     textDecoration: "none",
   },
 };
