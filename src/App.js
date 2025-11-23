@@ -1,9 +1,13 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import Register from "./Register";
 import Login from "./Login";
 import Dashboard from "./Dashboard";
 import Navbar from "./components/Navbar";
+
+// ⭐ ADD THIS IMPORT
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -21,6 +25,9 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* ⭐ ADMIN ROUTE — THIS IS NEW */}
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>
