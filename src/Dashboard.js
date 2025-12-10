@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CareerForm from "./CareerForm";
-import PersonalityQuiz from "./PersonalityQuiz";
+import theme from "./theme";
 
 function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [workStyle, setWorkStyle] = useState("analytical"); // default
 
   useEffect(() => {
     const data = localStorage.getItem("user");
@@ -21,11 +20,20 @@ function Dashboard() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.container} className="fade-in">
-        <div style={styles.profileCard} className="slide-left">
-          <div style={styles.avatar}>👤</div>
-          <h2 style={styles.title}>Welcome, {user.name}</h2>
-          <p style={styles.email}>{user.email}</p>
+      <div style={styles.grid}>
+        <div style={styles.card} className="card-animate">
+          <div style={styles.cardTop}>
+            <div style={styles.avatar}>{user.name?.[0]}</div>
+            <div>
+              <h2 style={styles.title}>Welcome back, {user.name}</h2>
+              <p style={styles.subText}>{user.email}</p>
+            </div>
+          </div>
+
+          <div style={styles.pillRow}>
+            <span style={styles.pill}>Profile synced</span>
+            <span style={styles.pillSecondary}>Personalized journey</span>
+          </div>
 
           <button
             onClick={() => {
@@ -33,98 +41,93 @@ function Dashboard() {
               navigate("/login");
             }}
             style={styles.logoutBtn}
+            className="button-hover"
           >
             Logout
           </button>
-
-          <div style={{ marginTop: 20 }}>
-            <h4 style={{ marginBottom: 8 }}>Take a quick personality quiz</h4>
-            <PersonalityQuiz onComplete={(style, scores) => {
-              setWorkStyle(style);
-              // optional: show a small toast — for now console
-              console.log("Quiz done:", style, scores);
-            }} />
-          </div>
         </div>
 
-        <div style={styles.careerCard} className="slide-right">
-          {/* pass chosen workStyle into CareerForm */}
-          <CareerForm externalWorkStyle={workStyle} />
+        <div style={styles.card} className="card-animate">
+          <CareerForm />
         </div>
       </div>
     </div>
   );
 }
 
-// (styles same as your premium Dashboard earlier) — copy-paste the same block
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #141E30, #243B55)",
-    padding: "40px",
-    color: "white",
-    fontFamily: "Arial, sans-serif",
+    padding: "0 4px 40px",
   },
-
-  container: {
+  grid: {
+    display: "grid",
+    gap: theme.spacing.md,
+    gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+    alignItems: "start",
+  },
+  card: {
+    ...theme.glassPanel("24px"),
+    color: theme.colors.textPrimary,
+    position: "relative",
+  },
+  cardTop: {
     display: "flex",
-    justifyContent: "space-between",
-    maxWidth: "1200px",
-    margin: "0 auto",
-    gap: "40px",
-    flexWrap: "wrap",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
   },
-
-  profileCard: {
-    flex: "1",
-    minWidth: "300px",
-    background: "rgba(255,255,255,0.1)",
-    borderRadius: "20px",
-    padding: "25px",
-    backdropFilter: "blur(12px)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
-    textAlign: "center",
-  },
-
-  careerCard: {
-    flex: "2",
-    minWidth: "350px",
-    background: "rgba(255,255,255,0.1)",
-    borderRadius: "20px",
-    padding: "25px",
-    backdropFilter: "blur(12px)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
-  },
-
   avatar: {
-    fontSize: "60px",
-    marginBottom: "10px",
+    width: "58px",
+    height: "58px",
+    borderRadius: theme.radii.lg,
+    background: theme.gradients.secondary,
+    display: "grid",
+    placeItems: "center",
+    fontSize: "24px",
+    fontWeight: 800,
+    color: "#041024",
+    boxShadow: theme.shadows.glow,
   },
-
   title: {
-    fontSize: "26px",
-    marginBottom: "10px",
+    fontSize: "22px",
+    margin: 0,
+    fontWeight: 700,
   },
-
-  email: {
-    fontSize: "16px",
-    opacity: "0.8",
-    marginBottom: "20px",
+  subText: {
+    fontSize: "14px",
+    color: theme.colors.textSecondary,
+    margin: "4px 0 0",
   },
-
+  pillRow: {
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+    marginBottom: theme.spacing.sm,
+  },
+  pill: {
+    padding: "8px 12px",
+    background: "rgba(99,102,241,0.16)",
+    borderRadius: "999px",
+    border: "1px solid rgba(99,102,241,0.3)",
+    color: "#c7d2fe",
+    fontSize: "12px",
+    fontWeight: 700,
+  },
+  pillSecondary: {
+    padding: "8px 12px",
+    background: "rgba(14,165,233,0.14)",
+    borderRadius: "999px",
+    border: "1px solid rgba(14,165,233,0.3)",
+    color: "#bae6fd",
+    fontSize: "12px",
+    fontWeight: 700,
+  },
   logoutBtn: {
-    padding: "12px 25px",
-    backgroundColor: "#E74C3C",
-    border: "none",
-    borderRadius: "10px",
-    color: "white",
-    fontSize: "16px",
-    cursor: "pointer",
-    transition: "0.3s",
+    ...theme.button("danger"),
+    color: "#0b1224",
+    width: "fit-content",
   },
 };
 
-// animation styles appended by your previous Dashboard code — they remain the same
-export default Dashboard;
+export default Dashboard

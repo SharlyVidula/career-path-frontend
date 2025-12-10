@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import theme from "../theme";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -11,19 +12,33 @@ function Navbar() {
   };
 
   return (
-    <nav style={styles.nav}>
-      <h2 style={styles.logo}>CareerPath</h2>
+    <nav style={styles.nav} className="card-animate">
+      <div style={styles.brandRow}>
+        <div style={styles.badge}>CP</div>
+        <div>
+          <h2 style={styles.logo}>CareerPath</h2>
+          <p style={styles.subtle}>Future-forward guidance</p>
+        </div>
+      </div>
 
-      <div>
+      <div style={styles.links}>
         {!user ? (
           <>
-            <Link to="/register" style={styles.link}>Register</Link>
-            <Link to="/login" style={styles.link}>Login</Link>
+            <Link to="/register" style={styles.link} className="button-hover">
+              Register
+            </Link>
+            <Link to="/login" style={styles.linkGhost} className="button-hover">
+              Login
+            </Link>
           </>
         ) : (
           <>
-            <Link to="/dashboard" style={styles.link}>Dashboard</Link>
-            <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
+            <Link to="/dashboard" style={styles.link} className="button-hover">
+              Dashboard
+            </Link>
+            <button onClick={handleLogout} style={styles.logoutBtn} className="button-hover">
+              Logout
+            </button>
           </>
         )}
       </div>
@@ -33,33 +48,79 @@ function Navbar() {
 
 const styles = {
   nav: {
-    padding: "15px 40px",
-    backgroundColor: "#1A73E8",
-    color: "white",
+    ...theme.glassPanel("14px 18px"),
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "30px",
+    marginTop: theme.spacing.lg,
+    position: "sticky",
+    top: "12px",
+    zIndex: 5,
+    backdropFilter: `blur(${theme.blur.heavy})`,
+    border: `1px solid ${theme.colors.border}`,
+  },
+  brandRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+  },
+  badge: {
+    width: "40px",
+    height: "40px",
+    borderRadius: theme.radii.md,
+    background: theme.gradients.primary,
+    display: "grid",
+    placeItems: "center",
+    fontWeight: 800,
+    color: "#0b1224",
+    boxShadow: theme.shadows.glow,
   },
   logo: {
     margin: 0,
-    fontSize: "22px",
-    fontWeight: "bold",
+    fontSize: "18px",
+    letterSpacing: "0.4px",
+    fontWeight: 700,
+  },
+  subtle: {
+    margin: 0,
+    fontSize: "12px",
+    color: theme.colors.textSecondary,
+  },
+  links: {
+    display: "flex",
+    alignItems: "center",
+    gap: theme.spacing.sm,
   },
   link: {
-    marginRight: "20px",
-    color: "white",
+    padding: "10px 14px",
+    borderRadius: theme.radii.md,
+    background: theme.gradients.secondary,
+    color: "#0b1224",
     textDecoration: "none",
-    fontSize: "16px",
+    fontWeight: 700,
+    letterSpacing: theme.typography.letter,
+    border: "none",
+  },
+  linkGhost: {
+    padding: "10px 14px",
+    borderRadius: theme.radii.md,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255, 255, 255, 0.02)",
+    color: theme.colors.textPrimary,
+    textDecoration: "none",
+    fontWeight: 700,
+    letterSpacing: theme.typography.letter,
   },
   logoutBtn: {
-    background: "white",
-    color: "#1A73E8",
-    padding: "6px 14px",
-    borderRadius: "6px",
+    padding: "10px 14px",
+    borderRadius: theme.radii.md,
     border: "none",
+    background: theme.gradients.danger,
+    color: "#0b1224",
+    fontWeight: 700,
+    letterSpacing: theme.typography.letter,
     cursor: "pointer",
-  }
+  },
 };
 
 export default Navbar;

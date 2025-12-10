@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import apiClient from "./apiClient";
+import theme from "./theme";
 
 function Register() {
   const navigate = useNavigate();
@@ -17,10 +18,7 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/users/register",
-        formData
-      );
+      const res = await apiClient.post("/users/register", formData);
 
       if (res.data.message === "User registered successfully") {
         navigate("/login");
@@ -34,41 +32,58 @@ function Register() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Create an Account</h2>
+      <div style={styles.card} className="card-animate">
+        <div style={styles.cardHeader}>
+          <p style={styles.badge}>Step one</p>
+          <h2 style={styles.title}>Create an Account</h2>
+          <p style={styles.lead}>Save your journey and unlock tailored recommendations.</p>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <input
-            name="name"
-            placeholder="Full Name"
-            value={formData.name}
-            onChange={handleChange}
-            style={styles.input}
-          />
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <label style={styles.label}>
+            Full Name
+            <input
+              name="name"
+              placeholder="e.g., Alex Johnson"
+              value={formData.name}
+              onChange={handleChange}
+              style={styles.input}
+            />
+          </label>
 
-          <input
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            style={styles.input}
-          />
+          <label style={styles.label}>
+            Email
+            <input
+              name="email"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              style={styles.input}
+            />
+          </label>
 
-          <input
-            name="password"
-            type="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            style={styles.input}
-          />
+          <label style={styles.label}>
+            Password
+            <input
+              name="password"
+              type="password"
+              placeholder="Create a secure password"
+              value={formData.password}
+              onChange={handleChange}
+              style={styles.input}
+            />
+          </label>
 
-          <button type="submit" style={styles.button}>Register</button>
+          <button type="submit" style={styles.button} className="button-hover">
+            Create account
+          </button>
         </form>
 
         <p style={styles.text}>
           Already registered?{" "}
-          <Link to="/login" style={styles.link}>Login here</Link>
+          <Link to="/login" style={styles.link} className="button-hover">
+            Login here
+          </Link>
         </p>
       </div>
     </div>
@@ -79,43 +94,79 @@ const styles = {
   page: {
     display: "flex",
     justifyContent: "center",
-    marginTop: "40px",
+    padding: "10px 0 40px",
   },
   card: {
-    width: "320px",
-    padding: "25px",
-    borderRadius: "12px",
-    background: "white",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-    textAlign: "center",
+    ...theme.glassPanel("28px"),
+    width: "420px",
+    color: theme.colors.textPrimary,
+    position: "relative",
+    overflow: "hidden",
+  },
+  cardHeader: {
+    textAlign: "left",
+    marginBottom: theme.spacing.md,
   },
   title: {
-    color: "#1A73E8",
-    marginBottom: "20px",
+    color: theme.colors.textPrimary,
+    margin: "6px 0 6px",
+    fontSize: "24px",
+    letterSpacing: "0.2px",
+  },
+  lead: {
+    margin: 0,
+    color: theme.colors.textSecondary,
+    fontSize: "14px",
+    lineHeight: 1.5,
+  },
+  badge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "6px 12px",
+    borderRadius: theme.radii.md,
+    background: theme.gradients.glassEdge,
+    border: `1px solid ${theme.colors.border}`,
+    color: theme.colors.textSecondary,
+    fontSize: "12px",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+  },
+  form: {
+    display: "grid",
+    gap: theme.spacing.sm,
+  },
+  label: {
+    display: "grid",
+    gap: theme.spacing.xs,
+    textAlign: "left",
+    fontSize: "14px",
+    color: theme.colors.textPrimary,
+    letterSpacing: theme.typography.letter,
   },
   input: {
-    width: "100%",
-    padding: "10px",
-    margin: "10px 0",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
+    ...theme.input(),
   },
   button: {
+    ...theme.button("secondary"),
     width: "100%",
-    padding: "10px",
-    backgroundColor: "#28a745",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    marginTop: "15px",
+    marginTop: theme.spacing.xs,
+    color: "#041024",
   },
   text: {
-    marginTop: "15px",
+    marginTop: theme.spacing.md,
+    textAlign: "center",
+    color: theme.colors.textSecondary,
   },
   link: {
-    color: "#1A73E8",
+    color: theme.colors.textPrimary,
     textDecoration: "none",
+    fontWeight: 700,
+    marginLeft: "6px",
+    padding: "6px 10px",
+    borderRadius: theme.radii.sm,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255, 255, 255, 0.04)",
   },
 };
 
