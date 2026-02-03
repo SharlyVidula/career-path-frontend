@@ -43,15 +43,13 @@ function Dashboard() {
             </button>
 
             <button
-              onClick={() => {
-                localStorage.removeItem("user");
-                navigate("/login");
-              }}
-              style={styles.logoutBtn}
+              onClick={() => navigate("/jd-match")}
+              style={styles.growthBtn}
               className="button-hover"
             >
-              Logout
+              🎯 JD Match
             </button>
+
           </div>
         </div>
 

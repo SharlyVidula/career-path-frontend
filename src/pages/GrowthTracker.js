@@ -4,12 +4,7 @@ import apiClient from "../apiClient";
 import theme from "../theme";
 
 import { Doughnut } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -25,6 +20,21 @@ const DEFAULT = {
   explanation: "",
 };
 
+const formatDateTime = (d) => {
+  try {
+    const dt = new Date(d);
+    return dt.toLocaleString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+};
+
 export default function GrowthTracker() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -34,6 +44,10 @@ export default function GrowthTracker() {
   const [loading, setLoading] = useState(false);
   const [booting, setBooting] = useState(true);
   const [error, setError] = useState("");
+
+  // ✅ NEW: timeline + streak
+  const [history, setHistory] = useState([]);
+  const [streak, setStreak] = useState(0);
 
   // Load user from localStorage
   useEffect(() => {
@@ -48,7 +62,7 @@ export default function GrowthTracker() {
   // Normalize userId ONCE
   const userId = user?._id || user?.id || user?.userId;
 
-  // Load growth state
+  // Load growth state + history + streak
   useEffect(() => {
     if (!userId) return;
 
@@ -57,19 +71,24 @@ export default function GrowthTracker() {
         setBooting(true);
         setError("");
 
-        const res = await apiClient.get(
-          `/growth/state?userId=${userId}`
-        );
+        const [stateRes, histRes, streakRes] = await Promise.all([
+          apiClient.get(`/growth/state?userId=${userId}`),
+          apiClient.get(`/growth/history?userId=${userId}&limit=7`),
+          apiClient.get(`/growth/streak?userId=${userId}`),
+        ]);
 
-        if (res.data?.ok) {
+        if (stateRes.data?.ok) {
           setState({
-            progress: res.data.progress,
-            todos: res.data.todos,
-            explanation: res.data.explanation,
+            progress: stateRes.data.progress,
+            todos: stateRes.data.todos,
+            explanation: stateRes.data.explanation,
           });
         } else {
-          setError(res.data?.message || "Failed to load growth state");
+          setError(stateRes.data?.message || "Failed to load growth state");
         }
+
+        if (histRes.data?.ok) setHistory(histRes.data.history || []);
+        if (streakRes.data?.ok) setStreak(streakRes.data.streak || 0);
       } catch (e) {
         setError(e?.response?.data?.message || e.message);
       } finally {
@@ -80,53 +99,60 @@ export default function GrowthTracker() {
     run();
   }, [userId]);
 
+  const refreshHistoryAndStreak = async () => {
+    if (!userId) return;
+    try {
+      const [histRes, streakRes] = await Promise.all([
+        apiClient.get(`/growth/history?userId=${userId}&limit=7`),
+        apiClient.get(`/growth/streak?userId=${userId}`),
+      ]);
+
+      if (histRes.data?.ok) setHistory(histRes.data.history || []);
+      if (streakRes.data?.ok) setStreak(streakRes.data.streak || 0);
+    } catch {
+      // silent
+    }
+  };
+
   // Overall average %
   const total = useMemo(() => {
     const p = state.progress;
     return p.academic + p.industry + p.skills + p.certifications + p.networking;
   }, [state.progress]);
 
-  // Chart data
- // Chart data (COLORED DONUT)
-const chartData = useMemo(() => {
-  const p = state.progress;
+  // Chart data (COLORED DONUT)
+  const chartData = useMemo(() => {
+    const p = state.progress;
 
-  return {
-    labels: ["Academic", "Industry", "Skills", "Certifications", "Networking"],
-    datasets: [
-      {
-        label: "Progress",
-        data: [
-          p.academic,
-          p.industry,
-          p.skills,
-          p.certifications,
-          p.networking,
-        ],
+    return {
+      labels: ["Academic", "Industry", "Skills", "Certifications", "Networking"],
+      datasets: [
+        {
+          label: "Progress",
+          data: [p.academic, p.industry, p.skills, p.certifications, p.networking],
 
-        backgroundColor: [
-          "rgba(139, 92, 246, 0.85)", // Academic
-          "rgba(56, 189, 248, 0.85)", // Industry
-          "rgba(34, 197, 94, 0.85)",  // Skills
-          "rgba(245, 158, 11, 0.85)", // Certifications
-          "rgba(236, 72, 153, 0.85)", // Networking
-        ],
+          backgroundColor: [
+            "rgba(139, 92, 246, 0.85)", // Academic
+            "rgba(56, 189, 248, 0.85)", // Industry
+            "rgba(34, 197, 94, 0.85)",  // Skills
+            "rgba(245, 158, 11, 0.85)", // Certifications
+            "rgba(236, 72, 153, 0.85)", // Networking
+          ],
 
-        borderColor: [
-          "rgba(139, 92, 246, 1)",
-          "rgba(56, 189, 248, 1)",
-          "rgba(34, 197, 94, 1)",
-          "rgba(245, 158, 11, 1)",
-          "rgba(236, 72, 153, 1)",
-        ],
+          borderColor: [
+            "rgba(139, 92, 246, 1)",
+            "rgba(56, 189, 248, 1)",
+            "rgba(34, 197, 94, 1)",
+            "rgba(245, 158, 11, 1)",
+            "rgba(236, 72, 153, 1)",
+          ],
 
-        borderWidth: 2,
-        hoverOffset: 10,
-      },
-    ],
-  };
-}, [state.progress]);
-
+          borderWidth: 2,
+          hoverOffset: 10,
+        },
+      ],
+    };
+  }, [state.progress]);
 
   // Chart options
   const chartOptions = useMemo(() => {
@@ -136,7 +162,12 @@ const chartData = useMemo(() => {
       plugins: {
         legend: {
           position: "bottom",
-          labels: { color: theme.colors.textSecondary },
+          labels: {
+            color: theme.colors.textSecondary,
+            usePointStyle: true,
+            pointStyle: "rectRounded",
+            padding: 16,
+          },
         },
         tooltip: {
           callbacks: {
@@ -172,6 +203,9 @@ const chartData = useMemo(() => {
           explanation: res.data.explanation,
         });
         setLogText("");
+
+        // ✅ refresh recent activity + streak after update
+        await refreshHistoryAndStreak();
       } else {
         setError(res.data?.message || "Failed to update progress");
       }
@@ -205,6 +239,11 @@ const chartData = useMemo(() => {
         </div>
 
         <div style={styles.headerActions}>
+          {/* ✅ NEW: streak pill */}
+          <span style={styles.streakPill}>
+            🔥 Streak: {streak} day{streak === 1 ? "" : "s"}
+          </span>
+
           <button style={styles.btnGhost} onClick={() => navigate("/dashboard")}>
             ← Dashboard
           </button>
@@ -245,7 +284,7 @@ const chartData = useMemo(() => {
           </div>
         </div>
 
-        {/* RIGHT: LOG + TODOS */}
+        {/* RIGHT: LOG + TODOS + TIMELINE */}
         <div style={styles.card}>
           <h2 style={styles.h2}>Today’s Log</h2>
 
@@ -289,6 +328,43 @@ const chartData = useMemo(() => {
           <p style={styles.p}>
             {state.explanation || "Add a log to get AI insights."}
           </p>
+
+          {/* ✅ NEW: Timeline */}
+          <div style={styles.divider} />
+          <h2 style={styles.h2}>Recent Activity</h2>
+
+          <div style={styles.historyWrap}>
+            {history.length === 0 && (
+              <div style={styles.todoEmpty}>
+                No history yet — your logs will appear here.
+              </div>
+            )}
+
+            {history.map((h, idx) => {
+              const hp = h?.progress || {};
+              const avg =
+                ((hp.academic || 0) +
+                  (hp.industry || 0) +
+                  (hp.skills || 0) +
+                  (hp.certifications || 0) +
+                  (hp.networking || 0)) /
+                5;
+
+              return (
+                <div key={idx} style={styles.historyCard}>
+                  <div style={styles.historyTop}>
+                    <span style={styles.historyDate}>
+                      {formatDateTime(h.createdAt)}
+                    </span>
+                    <span style={styles.historyAvg}>
+                      Avg: {Math.round(avg)}%
+                    </span>
+                  </div>
+                  <div style={styles.historyText}>{h.logText}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -312,6 +388,7 @@ const styles = {
     display: "flex",
     gap: 10,
     alignItems: "center",
+    flexWrap: "wrap",
   },
 
   h1: {
@@ -324,6 +401,16 @@ const styles = {
   subtitle: {
     marginTop: 6,
     color: theme.colors.textSecondary,
+  },
+
+  streakPill: {
+    padding: "8px 12px",
+    background: "rgba(245, 158, 11, 0.14)",
+    borderRadius: "999px",
+    border: "1px solid rgba(245, 158, 11, 0.35)",
+    color: "#fde68a",
+    fontSize: "12px",
+    fontWeight: 800,
   },
 
   card: {
@@ -463,6 +550,43 @@ const styles = {
     opacity: 0.8,
   },
 
+  historyWrap: {
+    display: "grid",
+    gap: 10,
+    marginTop: 8,
+  },
+
+  historyCard: {
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    padding: "12px",
+    borderRadius: theme.radii.md,
+  },
+
+  historyTop: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 10,
+    marginBottom: 6,
+  },
+
+  historyDate: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+
+  historyAvg: {
+    fontSize: 12,
+    fontWeight: 900,
+    color: theme.colors.textPrimary,
+  },
+
+  historyText: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    lineHeight: 1.5,
+  },
+
   errorBox: {
     ...theme.glassPanel("18px"),
     padding: 14,
@@ -471,4 +595,5 @@ const styles = {
     background: "rgba(239,68,68,0.08)",
     color: theme.colors.textPrimary,
   },
+  
 };

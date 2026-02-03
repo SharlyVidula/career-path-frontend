@@ -1,3 +1,4 @@
+import JDMatch from "./pages/JDMatch";
 import GrowthTracker from "./pages/GrowthTracker";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminCareers from "./pages/AdminCareers";
@@ -39,6 +40,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/growth" element={<GrowthTracker />} />
 
+              <Route path="/jd-match" element={<JDMatch />} />
 
               {/* Admin routes (no auth yet – optional later) */}
               <Route path="/admin" element={<AdminDashboard />} />
