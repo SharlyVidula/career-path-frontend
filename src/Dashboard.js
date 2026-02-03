@@ -47,7 +47,7 @@ function Dashboard() {
               style={styles.growthBtn}
               className="button-hover"
             >
-              🎯 JD Match
+              🎯 Job Des Match
             </button>
 
           </div>
